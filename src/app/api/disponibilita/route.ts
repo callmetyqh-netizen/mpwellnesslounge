@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { findService } from "@/lib/services";
 import { getAvailableSlots } from "@/lib/booking";
 import { isCalendarConfigured } from "@/lib/google/calendar";
@@ -27,6 +28,11 @@ export async function GET(request: Request) {
     return NextResponse.json(result);
   } catch (err) {
     console.error("[disponibilita] errore:", err);
+    // DEBUG TEMPORANEO — da rimuovere dopo la diagnosi.
+    const rawKey = process.env.GOOGLE_PRIVATE_KEY || "";
+    const convertedKey = rawKey.replace(/\\n/g, "\n");
+    const hash = crypto.createHash("sha256").update(convertedKey).digest("hex").slice(0, 16);
+    console.error("[disponibilita][debug] rawLength:", rawKey.length, "convertedLength:", convertedKey.length, "sha256prefix:", hash, "clientEmail:", process.env.GOOGLE_CLIENT_EMAIL);
     return NextResponse.json(
       { error: "Impossibile leggere la disponibilità in questo momento. Riprova più tardi." },
       { status: 502 }
